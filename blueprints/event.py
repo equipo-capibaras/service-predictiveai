@@ -9,7 +9,7 @@ from flask import Blueprint, Response, current_app, request
 from flask.views import MethodView
 
 from containers import Container
-from models import Action, Channel, HistoryEntry, Incident, IncidentRiskUpdateBody, Plan, Risk, Role
+from models import Action, Channel, Incident, IncidentRiskUpdateBody, Plan, Risk, Role
 from repositories import IncidentRepository
 
 from .util import class_route, json_response
@@ -70,7 +70,7 @@ def load_event_data() -> EventBody:
     return cast(EventBody, event_schema.load(req_json))
 
 
-@class_route(blp, '/api/v1/incident-update/predictiveai')
+@class_route(blp, '/api/v1/incident-risk-updated/predictiveai')
 class UpdateEvent(MethodView):
     init_every_request = False
 
@@ -82,13 +82,15 @@ class UpdateEvent(MethodView):
         else:
             current_app.logger.info('Incident %s risk updated', incident_id)
 
-    def set_risk(self, history: HistoryEntry | None) -> Risk:
-        escalations = sum(1 for entry in history if entry.action == Action.ESCALATED)
+    def set_risk(self, history: list[HistoryBody] | None) -> Risk | None:
+        if history:
+            escalations = sum(1 for entry in history if entry.action == Action.ESCALATED)
 
-        if escalations >= MAX_ESCALATIONS:
-            return Risk.HIGH
+            if escalations >= MAX_ESCALATIONS:
+                return Risk.HIGH
 
-        return choice(list(Risk))  # noqa: S311
+            return Risk(choice(list(Risk)))  # noqa: S311
+        return None
 
     def post(self, incident_repo: IncidentRepository = Provide[Container.incident_repo]) -> Response:
         data = load_event_data()

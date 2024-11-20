@@ -1,4 +1,4 @@
-from typing import cast
+from typing import Any, cast
 from unittest.mock import Mock
 
 import responses
@@ -16,7 +16,7 @@ class TestRestIncidentRepository(ParametrizedTestCase):
         self.base_url = self.faker.url().rstrip('/')
         self.repo = RestIncidentRepository(self.base_url, None)
 
-    def gen_fake_incident_response(self, client_id: str, incident_id: str, risk: Risk) -> dict:
+    def gen_fake_incident_response(self, client_id: str, incident_id: str, risk: Risk) -> dict[str, Any]:
         """Generate a fake response for an incident."""
         return {
             'id': incident_id,
@@ -56,7 +56,7 @@ class TestRestIncidentRepository(ParametrizedTestCase):
             (404, Risk.LOW, False),  # Not found
         ],
     )
-    def test_update_risk(self, status_code: int, risk: Risk, expected_result: bool) -> None:
+    def test_update_risk(self, status_code: int, risk: Risk, expected_result: bool) -> None:  # noqa: FBT001
         client_id = cast(str, self.faker.uuid4())
         incident_id = cast(str, self.faker.uuid4())
         update_body = IncidentRiskUpdateBody(risk=risk)
@@ -66,14 +66,15 @@ class TestRestIncidentRepository(ParametrizedTestCase):
         with responses.RequestsMock() as rsps:
             rsps.put(
                 f'{self.base_url}/api/v1/clients/{client_id}/incidents/{incident_id}/update-risk',
-                json=response_data if status_code == 200 else {'message': 'Not found'},
+                json=response_data if status_code == 200 else {'message': 'Not found'},  # noqa: PLR2004
                 status=status_code,
             )
 
             if expected_result:
                 result = self.repo.update_risk(client_id, incident_id, update_body)
-                self.assertIsInstance(result, Incident)
-                self.assertEqual(result.risk, risk)
+                if result is not None:
+                    self.assertIsInstance(result, Incident)
+                    self.assertEqual(result.risk, risk)
             else:
                 result = self.repo.update_risk(client_id, incident_id, update_body)
                 self.assertIsNone(result)

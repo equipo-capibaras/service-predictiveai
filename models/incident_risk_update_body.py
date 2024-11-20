@@ -7,4 +7,4 @@ from .risk import Risk
 
 @dataclass
 class IncidentRiskUpdateBody:
-    risk: Risk = field(metadata={'validate': marshmallow.validate.OneOf([Risk.HIGH, Risk.LOW, Risk.MEDIUM])})
+    risk: Risk | None = field(metadata={'validate': marshmallow.validate.OneOf([Risk.HIGH, Risk.LOW, Risk.MEDIUM])})

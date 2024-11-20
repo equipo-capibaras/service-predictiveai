@@ -59,15 +59,14 @@ class TestUpdateEvent(ParametrizedTestCase):
         }
 
     @parametrize(
-        ('action', 'escalations', 'expected_update_call'),
+        ('action', 'escalations', 'expected_update_call', 'expected_status'),
         [
-            (Action.CREATED, 0, True),
-            (Action.ESCALATED, 3, True),
-            (Action.CLOSED, 0, False),
+            (Action.CREATED, 0, True, 200),
+            (Action.ESCALATED, 3, True, 200),
+            (Action.CLOSED, 0, False, 200),
         ],
     )
-    def test_update_risk(self, action: Action, escalations: int, expected_update_call: bool) -> None:
-        # Generar datos de evento
+    def test_update_risk(self, action: Action, escalations: int, expected_update_call: bool, expected_status: int) -> None:  # noqa: FBT001
         data = self.gen_random_event_data(action=action)
         for i in range(1, escalations + 1):
             data['history'].append(
@@ -79,17 +78,22 @@ class TestUpdateEvent(ParametrizedTestCase):
                 }
             )
 
-        with self.app.container.incident_repo.override(self.incident_repo_mock):
-            response = self.client.post('/api/v1/incident-update/predictiveai', json=data)
+        # Asegúrate de limpiar el mock antes de la prueba
+        self.incident_repo_mock.update_risk.reset_mock()
 
-        # Verificar si `update_risk` fue llamado o no
+        with self.app.container.incident_repo.override(self.incident_repo_mock):
+            response = self.client.post('/api/v1/incident-risk-updated/predictiveai', json=data)
+
+        # Validar si `update_risk` fue llamado o no
         if expected_update_call:
             self.incident_repo_mock.update_risk.assert_called_once()
         else:
             self.incident_repo_mock.update_risk.assert_not_called()
 
-        # Validar respuesta
-        self.assertEqual(response.status_code, 200)
+        # Validar el código de estado
+        self.assertEqual(response.status_code, expected_status)
+
+        # Validar la respuesta esperada
         expected_response = {'message': 'Event processed.', 'code': 200}
         self.assertEqual(response.json, expected_response)
 
