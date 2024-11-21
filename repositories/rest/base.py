@@ -1,5 +1,5 @@
 import logging
-from typing import Never
+from typing import Any, Never
 
 import requests
 
@@ -23,6 +23,9 @@ class RestBaseRepository:
 
     def authenticated_get(self, url: str) -> requests.Response:
         return requests.get(url, timeout=2, headers=self._headers())
+
+    def authenticated_put(self, url: str, body: dict[str, Any]) -> requests.Response:
+        return requests.put(url, json=body, timeout=2, headers=self._headers())
 
     def unexpected_error(self, resp: requests.Response) -> Never:
         resp.raise_for_status()

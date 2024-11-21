@@ -33,6 +33,16 @@ def create_app() -> FlaskMicroservice:
         elif 'USE_CLOUD_TOKEN_PROVIDER' in os.environ:
             app.container.config.svc.user.token_provider.from_value(GcpAuthToken(os.environ['USER_SVC_URL']))
 
+    if 'INCIDENT_SVC_URL' in os.environ:  # pragma: no cover
+        app.container.config.svc.incident.url.from_env('INCIDENT_SVC_URL')
+
+        if 'INCIDENT_SVC_TOKEN' in os.environ:
+            app.container.config.svc.incident.token_provider.from_value(
+                type('TokenProvider', (object,), {'get_token': lambda: os.environ['INCIDENT_SVC_TOKEN']})
+            )
+        elif 'USE_CLOUD_TOKEN_PROVIDER' in os.environ:
+            app.container.config.svc.incident.token_provider.from_value(GcpAuthToken(os.environ['INCIDENT_SVC_URL']))
+
     app.register_blueprint(BlueprintEvent)
     app.register_blueprint(BlueprintHealth)
 
