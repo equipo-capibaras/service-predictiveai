@@ -82,7 +82,7 @@ class TestUpdateEvent(ParametrizedTestCase):
         self.incident_repo_mock.update_risk.reset_mock()
 
         with self.app.container.incident_repo.override(self.incident_repo_mock):
-            response = self.client.post('/api/v1/incident-risk-updated/predictiveai', json=data)
+            response = self.client.post('/api/v1/incident-update/predictiveai', json=data)
 
         # Validar si `update_risk` fue llamado o no
         if expected_update_call:
