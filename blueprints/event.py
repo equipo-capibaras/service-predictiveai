@@ -70,7 +70,7 @@ def load_event_data() -> EventBody:
     return cast(EventBody, event_schema.load(req_json))
 
 
-@class_route(blp, '/api/v1/incident-risk-updated/predictiveai')
+@class_route(blp, '/api/v1/incident-update/predictiveai')
 class UpdateEvent(MethodView):
     init_every_request = False
 

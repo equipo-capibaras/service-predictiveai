@@ -1,15 +1,15 @@
-data "google_pubsub_topic" "incident_risk_updated" {
-  name = "incident-risk-updated"
+data "google_pubsub_topic" "incident_update" {
+  name = "incident-update"
 }
 
-resource "google_pubsub_subscription" "incident_risk_updated" {
-  name  = "incident-risk-updated-${local.service_name}"
-  topic = data.google_pubsub_topic.incident_risk_updated.id
+resource "google_pubsub_subscription" "incident_update" {
+  name  = "incident-update-${local.service_name}"
+  topic = data.google_pubsub_topic.incident_update.id
 
   ack_deadline_seconds = 20
 
   push_config {
-    push_endpoint = "https://${local.service_name}-${data.google_project.default.number}.${local.region}.run.app/api/v1/incident-risk-updated/${local.service_name}"
+    push_endpoint = "https://${local.service_name}-${data.google_project.default.number}.${local.region}.run.app/api/v1/incident-update/${local.service_name}"
 
     attributes = {
       x-goog-version = "v1"
