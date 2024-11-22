@@ -95,7 +95,7 @@ class UpdateEvent(MethodView):
     def post(self, incident_repo: IncidentRepository = Provide[Container.incident_repo]) -> Response:
         data = load_event_data()
 
-        if data.history[-1].action != Action.CLOSED:
+        if data.history[-1].action != Action.CLOSED and data.history[-1].action != Action.AI_RESPONSE:
             new_risk = self.set_risk(history=data.history)
             body = IncidentRiskUpdateBody(risk=new_risk)
 
